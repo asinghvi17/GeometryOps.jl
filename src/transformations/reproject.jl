@@ -1,4 +1,9 @@
+# # Reprojection
+# These methods reproject GeoInterface geometries to 
+# any CRS, using the `source_crs` and `target_crs` kwargs.
 
+# They are built off the `apply` function also defined in this package, 
+# and are basically convenience wrappers around `apply`.
 
 """
     reproject(geometry; source_crs, target_crs, transform, always_xy, time)
@@ -29,6 +34,8 @@ needed if it is not retreivable from the geometry with `GeoInterface.crs(geometr
 function reproject(geom;
     source_crs=nothing, target_crs=nothing, transform=nothing, kw...
 )
+    ## This dispatch just automatically obtains the source CRS, and creates a transform from that and the `target`.
+    ## Then, it calls the other signature of `reproject`.
     if isnothing(transform)
         source_crs = isnothing(source_crs) ? GeoInterface.crs(geom) : source_crs
         isnothing(source_crs) && throw(ArgumentError("geom has no crs attatched. Pass a `source_crs` keyword"))
@@ -37,6 +44,7 @@ function reproject(geom;
         reproject(geom, transform; kw...)
     end
 end
+
 function reproject(geom, source_crs, target_crs;
     time=Inf,
     always_xy=true,
@@ -44,6 +52,7 @@ function reproject(geom, source_crs, target_crs;
 )
     reproject(geom, transform; time, target_crs)
 end
+# This function does the work of actually transforming.  You can see how simple it is!
 function reproject(geom, transform::Proj.Transformation; time=Inf, target_crs=nothing)
     if GI.is3d(geom)
         return apply(PointTrait, geom; crs=target_crs) do p
