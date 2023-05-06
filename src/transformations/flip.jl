@@ -1,3 +1,9 @@
+# # Coordinate flipping
+
+# This function is a minimal and simple example of how to wrap `apply` for your own purposes.
+
+# It swaps x and y if the geometry is 2d,
+# and reorders (x, y, z) to (y, x, z) if the geometry is 3d.
 """
     flip(obj)
 
