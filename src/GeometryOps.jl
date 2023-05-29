@@ -4,6 +4,8 @@ using GeoInterface
 using GeometryBasics
 import Proj
 
+using GeoInterface.Extents: Extents
+
 const GI = GeoInterface
 const GB = GeometryBasics
 
@@ -13,7 +15,7 @@ include("methods/bools.jl")
 include("methods/signed_distance.jl")
 include("methods/signed_area.jl")
 include("methods/centroid.jl")
-include("methods/intersection.jl")
+include("methods/intersects.jl")
 include("methods/contains.jl")
 include("transformations/flip.jl")
 include("transformations/simplify.jl")
