@@ -120,28 +120,30 @@ to be closed.
 =#
 function _signed_area(::Type{T}, geom) where T
     area = zero(T)
-    np = GI.npoint(geom)
-    np == 0 && return area
-
-    first = true
+    uninitialised = true
     local pfirst, p1
     # Integrate the area under the curve
     for p2 in GI.getpoint(geom)
         # Skip the first and do it later 
         # This lets us work within one iteration over geom, 
         # which means on C call when using points from external libraries.
-        if first
+        if uninitialised
             p1 = pfirst = p2
-            first = false
+            uninitialised = false
             continue
         end
         # Accumulate the area into `area`
         area += GI.x(p1) * GI.y(p2) - GI.y(p1) * GI.x(p2)
         p1 = p2
     end
-    # Complete the last edge.
-    # If the first and last where the same this will be zero
-    p2 = pfirst
-    area += GI.x(p1) * GI.y(p2) - GI.y(p1) * GI.x(p2)
+    if uninitialised
+        # No points, zero area
+        return area
+    else
+        # Complete the last edge.
+        # If the first and last where the same this will be zero
+        p2 = pfirst
+        area += GI.x(p1) * GI.y(p2) - GI.y(p1) * GI.x(p2)
+    end
     return T(area / 2)
 end
