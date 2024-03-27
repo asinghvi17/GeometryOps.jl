@@ -44,8 +44,8 @@ function _union(
     ext_a = GI.getexterior(poly_a)
     ext_b = GI.getexterior(poly_b)
     # Then, I get the union of the exteriors
-    a_list, b_list, a_idx_list = _build_ab_list(T, ext_a, ext_b)
-    polys = _trace_polynodes(T, a_list, b_list, a_idx_list, (x, y) -> x ? (-1) : 1)
+    a_list, b_list, a_idx_list = _build_ab_list(T, ext_a, ext_b, _union_delay_cross_f, _union_delay_bounce_f)
+    polys = _trace_polynodes(T, a_list, b_list, a_idx_list, _union_step)
     n_pieces = length(polys)
     # Check if one polygon totally within other and if so, return the larger polygon.
     if n_pieces == 0 # no crossing points, determine if either poly is inside the other
@@ -55,7 +55,6 @@ function _union(
         elseif b_in_a
             push!(polys,  GI.Polygon([tuples(ext_a)]))
         else
-            share_edge_warn(a_list, "Edge case: polygons share edge but can't be combined.") # will get taken care of with "glued edges"
             push!(polys, tuples(poly_a))
             push!(polys, tuples(poly_b))
             return polys
@@ -74,6 +73,20 @@ function _union(
     return polys
 end
 
+# # Helper functions for Unions with Greiner and Hormann Polygon Clipping # #
+
+#= When marking the crossing status of a delayed crossing, the chain start point is crossing
+when the start point is a entry point and is a bouncing point when the start point is an
+exit point. The end of the chain has the opposite crossing / bouncing status. =#
+_union_delay_cross_f(x) = (x, !x)
+#= When marking the crossing status of a delayed bouncing, the chain start and end points
+are bouncing if the current polygon's adjacent edges are within the non-tracing polygon. If
+the edges are outside then the chain endpoints are marked as crossing. x is a boolean
+representing if the edges are inside or outside of the polygon. =#
+_union_delay_bounce_f(x, _) = !x
+#= When tracing polygons, step backwards if the most recent intersection point was an entry
+point, else step forwards where x is the entry/exit status. =#
+_union_step(x, _) = x ? (-1) : 1
 
 # Many type and target combos aren't implemented
 function _union(
