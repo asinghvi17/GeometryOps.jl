@@ -95,31 +95,18 @@ function to_extent(edges::Vector{Edge})
     Extents.Extent(X=x, Y=y)
 end
 
-function to_points(x, ::Type{T} = Float64) where T
-    points = Vector{TuplePoint{T}}(undef, _npoint(x))
-    _to_points!(points, x, 1)
-    return points
-end
+to_point3(p, T::Type = Float64) = (T(GI.x(p)), T(GI.y(p)), T(GI.z(p)))
+to_point2(p, T::Type = Float64) = (T(GI.x(p)), T(GI.y(p)))
 
-_to_points!(points::Vector, x, n) = _to_points!(points, trait(x), x, n)
-function _to_points!(points::Vector, ::FeatureCollectionTrait, fc, n)
-    for f in GI.getfeature(fc)
-        n = _to_points!(points, f, n)
+"""
+    to_points(geom::AbstractGeometry, ::Type{T} = Float64) where {T <: Number}
+"""
+function to_points(geom, ::Type{T} = Float64) where {T <: Number}
+    if _is3d(geom)
+        return collect(flatten(p -> to_point3(p, T), GI.PointTrait, geom))
+    else
+        return collect(flatten(p -> to_point2(p, T), GI.PointTrait, geom))
     end
-end
-_to_points!(points::Vector, ::FeatureTrait, f, n) = _to_points!(points, GI.geometry(f), n)
-function _to_points!(points::Vector, ::AbstractGeometryTrait, fc, n)
-    for f in GI.getgeom(fc)
-        n = _to_points!(points, f, n)
-    end
-end
-function _to_points!(points::Vector, ::Union{AbstractCurveTrait,MultiPointTrait}, geom, n)
-    n = 0
-    for p in GI.getpoint(geom)
-        n += 1
-        points[n] = _tuple_point(p)
-    end
-    return n
 end
 
 function _point_in_extent(p, extent::Extents.Extent)
