@@ -13,12 +13,14 @@ poly = GI.Polygon([lr1, lr2])
 
 @testset "apply" begin
 
-    flipped_poly = GO.apply(GI.PointTrait, poly) do p
-        (GI.y(p), GI.x(p))
-    end
+    @test_all_implementations "simple flip to tuple" poly begin
+        flipped_poly = GO.apply(GI.PointTrait, poly) do p
+            (GI.y(p), GI.x(p))
+        end
 
-    @test flipped_poly == GI.Polygon([GI.LinearRing([(2, 1), (4, 3), (6, 5), (2, 1)]), 
-                                      GI.LinearRing([(4, 3), (6, 5), (7, 6), (4, 3)])])
+        @test flipped_poly == GI.Polygon([GI.LinearRing([(2, 1), (4, 3), (6, 5), (2, 1)]), 
+                                          GI.LinearRing([(4, 3), (6, 5), (7, 6), (4, 3)])])
+    end
 
     @testset "Tables.jl support" begin
         # check to account for missing data
@@ -63,7 +65,9 @@ poly = GI.Polygon([lr1, lr2])
     end
 end
 
-@testset "unwrap" begin
+
+
+@test_all_implementations "unwrap" poly begin
     flipped_vectors = GO.unwrap(GI.PointTrait, poly) do p
         (GI.y(p), GI.x(p))
     end
@@ -71,14 +75,14 @@ end
     @test flipped_vectors == [[(2, 1), (4, 3), (6, 5), (2, 1)], [(4, 3), (6, 5), (7, 6), (4, 3)]]
 end
 
-@testset "flatten" begin
+@test_all_implementations "flatten" (poly, lr1, lr2) begin
     very_wrapped = [[GI.FeatureCollection([GI.Feature(poly; properties=(;))])]]
-    @test collect(GO.flatten(GI.PointTrait, very_wrapped)) == vcat(pv1, pv2)
-    @test collect(GO.flatten(GI.LinearRingTrait, [poly])) == [lr1, lr2]
-    @test collect(GO.flatten(GI.LinearRingTrait, [poly])) == [lr1, lr2]
+    @test GO._tuple_point.(GO.flatten(GI.PointTrait, very_wrapped)) == vcat(pv1, pv2)
+    @test collect(GO.flatten(GI.AbstractCurveTrait, [poly])) == [lr1, lr2]
     @test collect(GO.flatten(GI.x, GI.PointTrait, very_wrapped)) == first.(vcat(pv1, pv2))
 end
 
+# TODO test_all_implementations
 @testset "reconstruct" begin
     revlr1 =  GI.LinearRing(reverse(pv2))
     revlr2 = GI.LinearRing(reverse(pv1))

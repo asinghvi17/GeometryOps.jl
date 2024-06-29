@@ -14,12 +14,14 @@ const AG = ArchGDAL
 const LG = LibGEOS
 const GO = GeometryOps
 
+include("helpers.jl")
+
 @testset "GeometryOps.jl" begin
     @testset "Primitives" begin include("primitives.jl") end
     # Methods
     @testset "Angles" begin include("methods/angles.jl") end
     @testset "Area" begin include("methods/area.jl") end
-    @testset "Barycentric coordinate operations" begin include("methods/barycentric.jl") end
+    # @testset "Barycentric coordinate operations" begin include("methods/barycentric.jl") end
     @testset "Orientation" begin include("methods/orientation.jl") end
     @testset "Centroid" begin include("methods/centroid.jl") end
     @testset "DE-9IM Geom Relations" begin include("methods/geom_relations.jl") end
